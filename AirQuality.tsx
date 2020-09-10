@@ -48,7 +48,9 @@ const AirQuality: FunctionComponent = () => {
   }
   Query();
 
-  let x: number = Math.floor(aqi / 20);
+  let x: number = Math.floor(aqi/ 20);
+  // // Demo Value
+   //x = 4
   let y: number;
   console.log('LatLong IN AIR QUALITYU', latLong());
 

@@ -19,6 +19,9 @@ import {
   makeVar,
 } from '@apollo/client';
 
+//fore demo
+console.disableYellowBox = true;
+
 const Tab = createBottomTabNavigator();
 
 function MyTabs() {

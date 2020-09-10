@@ -14,12 +14,16 @@ import { gql, useQuery } from '@apollo/client';
 import { latLong } from './App';
 
 const FireMap: FunctionComponent = () => {
-  const locationData: any = latLong();
-  const lat: number = locationData[0];
-  const long: number = locationData[1];
+ const locationData: any = latLong();
+  let lat: number = locationData[0];
+  let long: number = locationData[1];
+
+  // // Demo Content
+  lat = 39.8;
+  long = -122.8;
 
   let firesArray: any[] = [];
-  let allCoords: any[] = [{latitude: lat, longitude: long}];
+  let allCoords: any[] = [{ latitude: lat, longitude: long }];
 
   (function FireRetriever(latitude: number, longitude: number) {
     const GET_FIRES = gql`
@@ -28,28 +32,28 @@ const FireMap: FunctionComponent = () => {
           fires {
             latitude
             longitude
-						updateTime
+            updateTime
           }
         }
       }
     `;
-		const { loading, error, data } = useQuery(GET_FIRES, {
-			variables: {latitude, longitude}
-		});
-		if (loading) return <Text style={styles.text}>Loading...</Text>;
-		if (error) return <Text style={styles.text}>Error :</Text>;
-		if (data.report.fires.length < 1) {
-			Alert.alert(
-				'No fires in your area',
-				'Whew!',
-				[{ text: 'OK', onPress: () => console.log('OK Pressed') }],
-				{ cancelable: false }
-			);
-		}
-		// console.log('this is the fires array: ', data.report.fires)
+    const { loading, error, data } = useQuery(GET_FIRES, {
+      variables: { latitude, longitude },
+    });
+    if (loading) return <Text style={styles.text}>Loading...</Text>;
+    if (error) return <Text style={styles.text}>Error :</Text>;
+    if (data.report.fires.length < 1) {
+      Alert.alert(
+        'No fires in your area',
+        'Whew!',
+        [{ text: 'OK', onPress: () => console.log('OK Pressed') }],
+        { cancelable: false }
+      );
+    }
+    // console.log('this is the fires array: ', data.report.fires)
     firesArray = data.report.fires;
   })(lat, long);
-  
+
   const getLastUpdated = (lastUpdated: String) => {
     let d = new Date();
     let convertedDate = d.getUTCDate();
@@ -59,74 +63,79 @@ const FireMap: FunctionComponent = () => {
     let timeSliced = parseInt(lastUpdated.slice(11, 13));
 
     // if date is different
-    if (convertedDate - dateSliced === 1) return 24 - timeSliced + convertedTime;
+    if (convertedDate - dateSliced === 1)
+      return 24 - timeSliced + convertedTime;
     else if (convertedDate - dateSliced > 1) {
-      let days = convertedDate - dateSliced
-      let timeDiff = 24 - timeSliced + convertedTime
-      return `${days} days and ${timeDiff}`
+      let days = convertedDate - dateSliced;
+      let timeDiff = 24 - timeSliced + convertedTime;
+      return `${days} days and ${timeDiff}`;
     }
 
     // if date is the same
     return convertedTime - timeSliced;
-  }
+  };
 
-	let mapRef = useRef(null);
+  let mapRef = useRef(null);
 
-	useEffect(() => {
-		mapRef.current.fitToCoordinates(allCoords, { edgePadding: {
-			top: 75,
-			right: 75,
-			bottom: 75,
-			left: 75
-    }});
-  })
+  useEffect(() => {
+    mapRef.current.fitToCoordinates(allCoords, {
+      edgePadding: {
+        top: 75,
+        right: 75,
+        bottom: 75,
+        left: 75,
+      },
+    });
+  });
 
-	return (
-		<View style={styles.container}>
-			<MapView
-			ref={mapRef}
-			style={styles.mapStyle}
-			region={{
-				latitude: lat,
-				longitude: long,
-				latitudeDelta: 0.0922,
-				longitudeDelta: 0.0421,
-			}}
-			>
-			<Marker
-				coordinate={{
-					latitude: lat,
-					longitude: long,
-				}}
-				description={'This is your current location'}
-			>
-				<View style={styles.currentLocationWrap}>
-					<View style={styles.currentLocationRing} />
-					<View style={styles.currentLocation} />
-				</View>
-			</Marker>
-			{firesArray.map((obj, index) => {
-        allCoords.push({latitude: obj.latitude, longitude: obj.longitude});
-				return (
-					<Marker
-						key={obj.latitude}
-						coordinate={{
-							latitude: obj.latitude,
-							longitude: obj.longitude,
-						}}
-						description={`Last updated ${getLastUpdated(obj.updateTime)} hours ago`}
-						>
-						<View style={styles.fireWrap}>
-							<View style={styles.fireRing} />
-							<View style={styles.fire} />
-            </View>
-					</Marker>
-				)
-			})}
-			</MapView>
-		</View>
-	);
-}
+  return (
+    <View style={styles.container}>
+      <MapView
+        ref={mapRef}
+        style={styles.mapStyle}
+        region={{
+          latitude: lat,
+          longitude: long,
+          latitudeDelta: 0.0922,
+          longitudeDelta: 0.0421,
+        }}
+      >
+        <Marker
+          coordinate={{
+            latitude: lat,
+            longitude: long,
+          }}
+          description={'This is your current location'}
+        >
+          <View style={styles.currentLocationWrap}>
+            <View style={styles.currentLocationRing} />
+            <View style={styles.currentLocation} />
+          </View>
+        </Marker>
+        {firesArray.map((obj, index) => {
+          allCoords.push({ latitude: obj.latitude, longitude: obj.longitude });
+          return (
+            <Marker
+              key={obj.latitude}
+              coordinate={{
+                latitude: obj.latitude,
+                longitude: obj.longitude,
+              }}
+              description={`Last updated ${getLastUpdated(
+                obj.updateTime
+              )} hours ago`}
+            >
+              <View style={styles.fireWrap}>
+                <View style={styles.fireRing} />
+                <View style={styles.fire} />
+              </View>
+            </Marker>
+          );
+        })}
+      </MapView>
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
   text: {
